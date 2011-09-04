@@ -1,0 +1,35 @@
+<html>
+    <script>
+        (function() {
+            var $tabs = chrome.tabs,
+                $ext = chrome.extension;
+
+            function handleData(data) {
+                var tabId = data.tabId;
+                if (!!data.url) {
+                    chrome.pageAction.show(tabId);
+                } else {
+                    chrome.pageAction.hide(tabId);
+                }
+            }
+
+            function handleTabSwitch(tabId, selectionInfo) {
+                $tabs.sendRequest(tabId, {'tabId': tabId}, function(response) {
+                    handleData(response, tabId);
+                });
+            }
+
+            $ext.onRequest.addListener(function(data, sender, sendResponse) {
+                handleData(data);
+                sendResponse();
+            });
+            $tabs.onSelectionChanged.addListener(handleTabSwitch);
+            $tabs.onUpdated.addListener(handleTabSwitch);
+            chrome.pageAction.onClicked.addListener(function(tab) {
+                $tabs.sendRequest(tab.id, 'url', function(url) {
+                    $tabs.create({url: url});
+                });
+            });
+        })();
+    </script>
+</html>
