@@ -1,5 +1,6 @@
 (function() {
-    var $ext = chrome.extension;
+    var $ext = chrome.extension,
+        cacheTimeout = 1000 * 60 * 60; // 1h
 
     function makeAbsoluteUrl(url) {
         var loc = document.location,
@@ -19,15 +20,26 @@
     }
 
     function findUrl(callback) {
-        if (typeof localStorage.techtxt_url !== 'undefined') {
-            return callback(localStorage.techtxt_url);
+        if (typeof localStorage['techtxt.url'] !== 'undefined') {
+            var oldTS = null,
+                now = new Date().getTime();
+            if (typeof localStorage['techtxt.createdAt'] !== 'undefined') {
+                oldTS = parseInt(localStorage['techtxt.createdAt'], 10);
+                if (isNaN(oldTS)) {
+                    oldTS = 0;
+                }
+            }
+            if (now - oldTS < cacheTimeout) {
+                return callback(localStorage['techtxt.url']);
+            }
         }
         var url = null,
             callback_ = function(url_) {
                 if (url_ !== '') {
                     url_ = makeAbsoluteUrl(url_);
                 }
-                localStorage.techtxt_url = url_;
+                localStorage['techtxt.url'] = url_;
+                localStorage['techtxt.createdAt']= new Date().getTime();
                 callback(url_);
             };
         url = findUrlInDom(document);
@@ -84,7 +96,7 @@
     
     $ext.onRequest.addListener(function(data, sender, sendResponse) {
         if (typeof data === 'string' && data === 'url') {
-            sendResponse(localStorage.techtxt_url);
+            sendResponse(localStorage['techtxt.url']);
             return;
         }
         findUrl(function(url) {
