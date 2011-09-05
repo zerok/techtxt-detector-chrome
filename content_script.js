@@ -14,25 +14,27 @@
         if (url.indexOf('/') === 0) {
             return absUrl + url;
         } else {
-            return absUrl + pathname + url;
+            return absUrl + loc.pathname + url;
         }
     }
 
     function findUrl(callback) {
-        if (typeof localStorage['techtxt_url'] !== 'undefined') {
-            callback(localStorage['techtxt_url']);
+        if (typeof localStorage.techtxt_url !== 'undefined') {
+            return callback(localStorage.techtxt_url);
         }
         var url = null,
-            _callback = function(url) {
-                url = makeAbsoluteUrl(url);
-                localStorage['techtxt_url'] = url;
-                callback(url);
+            callback_ = function(url_) {
+                if (url_ !== '') {
+                    url_ = makeAbsoluteUrl(url_);
+                }
+                localStorage.techtxt_url = url_;
+                callback(url_);
             };
         url = findUrlInDom(document);
-        if (url === null) {
-            findUrlOnDomain(document, _callback);
+        if (url === "") {
+            findUrlOnDomain(document, callback_);
         } else {
-            _callback(url);
+            callback_(url);
         }
     }
 
@@ -82,7 +84,7 @@
     
     $ext.onRequest.addListener(function(data, sender, sendResponse) {
         if (typeof data === 'string' && data === 'url') {
-            sendResponse(localStorage['techtxt_url']);
+            sendResponse(localStorage.techtxt_url);
             return;
         }
         findUrl(function(url) {

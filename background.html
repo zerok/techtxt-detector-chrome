@@ -21,7 +21,6 @@
 
             $ext.onRequest.addListener(function(data, sender, sendResponse) {
                 handleData(data);
-                sendResponse();
             });
             $tabs.onSelectionChanged.addListener(handleTabSwitch);
             $tabs.onUpdated.addListener(handleTabSwitch);
